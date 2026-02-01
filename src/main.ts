@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ZodValidationPipe } from 'nestjs-zod';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import {
@@ -47,15 +47,10 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
   // ============================================
-  // VALIDATION PIPE (Will use Zod in routes)
+  // VALIDATION PIPE (Using Zod via nestjs-zod)
+  // Validates all DTOs created with createZodDto()
   // ============================================
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+  app.useGlobalPipes(new ZodValidationPipe());
 
   // ============================================
   // SWAGGER / OPENAPI DOCUMENTATION

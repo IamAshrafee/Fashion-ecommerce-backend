@@ -5,6 +5,9 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { SettingsModule } from './settings/settings.module';
+import { StorageModule } from './storage/storage.module';
+import { SeedService } from './database/seed.service';
 
 @Module({
   imports: [
@@ -42,10 +45,17 @@ import { AppService } from './app.service';
         ],
       }),
     }),
+
+    // ============================================
+    // FEATURE MODULES
+    // ============================================
+    SettingsModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    SeedService,
     // Apply throttler guard globally
     {
       provide: APP_GUARD,
