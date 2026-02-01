@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SeedService } from './seed.service';
 import { SettingsModule } from '../settings/settings.module';
+import { CategoriesModule } from '../categories/categories.module';
+import { ProductsModule } from '../products/products.module';
 
 /**
  * SeedModule
@@ -23,6 +25,8 @@ import { SettingsModule } from '../settings/settings.module';
             }),
         }),
         SettingsModule,
+        CategoriesModule,
+        ProductsModule,
     ],
     providers: [SeedService],
     exports: [SeedService],

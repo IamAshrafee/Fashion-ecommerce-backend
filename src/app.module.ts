@@ -8,6 +8,8 @@ import { AppService } from './app.service';
 import { SettingsModule } from './settings/settings.module';
 import { StorageModule } from './storage/storage.module';
 import { SeedService } from './database/seed.service';
+import { CategoriesModule } from './categories/categories.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { SeedService } from './database/seed.service';
     // ============================================
     SettingsModule,
     StorageModule,
+    CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [
