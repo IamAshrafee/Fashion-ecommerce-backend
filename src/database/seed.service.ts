@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SettingsService } from '../settings/settings.service';
 import { CategoriesService } from '../categories/categories.service';
 import { ProductsService } from '../products/products.service';
+import { AuthService } from '../auth/auth.service';
 
 /**
  * SeedService
@@ -17,6 +18,7 @@ export class SeedService {
         private readonly settingsService: SettingsService,
         private readonly categoriesService: CategoriesService,
         private readonly productsService: ProductsService,
+        private readonly authService: AuthService,
     ) { }
 
     /**
@@ -29,6 +31,7 @@ export class SeedService {
         this.logger.log('🌱 Starting database seeding...');
 
         await this.seedSettings();
+        await this.seedUsers();
         await this.seedCatalog();
 
         this.logger.log('✅ Database seeding completed successfully!');
@@ -42,6 +45,51 @@ export class SeedService {
     async seedSettings(): Promise<void> {
         this.logger.log('📋 Seeding settings...');
         await this.settingsService.ensureSettingsExist();
+    }
+
+    /**
+     * Seed Users
+     *
+     * Creates test users for authentication and RBAC testing:
+     * - Admin user (can manage products, categories, settings)
+     * - Customer user (can manage own cart and orders)
+     */
+    async seedUsers(): Promise<void> {
+        this.logger.log('👥 Seeding users...');
+
+        try {
+            // Admin user
+            await this.authService.register({
+                email: 'admin@test.com',
+                password: 'admin123',
+                name: 'Admin User',
+            });
+            this.logger.log('✅ Admin user created: admin@test.com / admin123');
+        } catch (error) {
+            if (error.message?.includes('already exists') || error.response?.message?.includes('already exists')) {
+                this.logger.log('ℹ️  Admin user already exists');
+            } else {
+                this.logger.error('❌ Admin seed failed:', JSON.stringify(error.response || error.message, null, 2));
+                throw error;
+            }
+        }
+
+        try {
+            // Customer user
+            await this.authService.register({
+                email: 'customer@test.com',
+                password: 'customer123',
+                name: 'John Doe',
+            });
+            this.logger.log('✅ Customer user created: customer@test.com / customer123');
+        } catch (error) {
+            if (error.message?.includes('already exists') || error.response?.message?.includes('already exists')) {
+                this.logger.log('ℹ️  Customer user already exists');
+            } else {
+                this.logger.error('❌ Customer seed failed:', JSON.stringify(error.response || error.message, null, 2));
+                throw error;
+            }
+        }
     }
 
     /**

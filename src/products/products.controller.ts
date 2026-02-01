@@ -10,6 +10,7 @@ import {
     Inject,
     UploadedFile,
     UseInterceptors,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -19,6 +20,7 @@ import {
     ApiQuery,
     ApiConsumes,
     ApiBody,
+    ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
@@ -26,6 +28,10 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import type { ProductFilterDto } from './dto/product-filter.dto';
 import type { IStorageService } from '../common/interfaces/storage.interface';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../auth/schemas/user.schema';
 
 /**
  * ProductsController
@@ -41,9 +47,12 @@ export class ProductsController {
     ) { }
 
     /**
-     * Create Product
+     * Create Product (ADMIN Only)
      */
     @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Create product',
         description:
@@ -134,9 +143,12 @@ export class ProductsController {
     }
 
     /**
-     * Update Product
+     * Update Product (ADMIN Only)
      */
     @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Update product',
         description:
@@ -154,9 +166,12 @@ export class ProductsController {
     }
 
     /**
-     * Delete Product
+     * Delete Product (ADMIN Only)
      */
     @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Delete product',
         description: 'Delete product and all variants. Admin only (enforced in Phase 4).',
@@ -169,12 +184,15 @@ export class ProductsController {
     }
 
     /**
-     * Upload Product Image
+     * Upload Product Image (ADMIN Only)
      *
      * Uses IStorageService (Adapter Pattern) for provider-agnostic uploads.
      * Returns { key, url, provider } which can be used in variant.images array.
      */
     @Post('upload-image')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @UseInterceptors(FileInterceptor('file'))
     @ApiConsumes('multipart/form-data')
     @ApiOperation({

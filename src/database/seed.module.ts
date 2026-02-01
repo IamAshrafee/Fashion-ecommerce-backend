@@ -5,6 +5,7 @@ import { SeedService } from './seed.service';
 import { SettingsModule } from '../settings/settings.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { ProductsModule } from '../products/products.module';
+import { AuthModule } from '../auth/auth.module';
 
 /**
  * SeedModule
@@ -27,6 +28,7 @@ import { ProductsModule } from '../products/products.module';
         SettingsModule,
         CategoriesModule,
         ProductsModule,
+        AuthModule, // For creating seed users
     ],
     providers: [SeedService],
     exports: [SeedService],

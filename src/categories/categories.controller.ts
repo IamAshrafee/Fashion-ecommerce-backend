@@ -6,11 +6,22 @@ import {
     Delete,
     Body,
     Param,
+    UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiParam,
+    ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../auth/schemas/user.schema';
 
 /**
  * CategoriesController
@@ -24,9 +35,12 @@ export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) { }
 
     /**
-     * Create Category
+     * Create Category (ADMIN Only)
      */
     @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Create category',
         description: 'Create a new category. Admin only (enforced in Phase 4).',
@@ -83,9 +97,12 @@ export class CategoriesController {
     }
 
     /**
-     * Update Category
+     * Update Category (ADMIN Only)
      */
     @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Update category',
         description: 'Update category details. Admin only (enforced in Phase 4).',
@@ -98,9 +115,12 @@ export class CategoriesController {
     }
 
     /**
-     * Delete Category
+     * Delete Category (ADMIN Only)
      */
     @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Delete category',
         description: 'Delete category. Admin only (enforced in Phase 4).',

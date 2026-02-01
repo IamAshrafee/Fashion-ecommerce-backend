@@ -1,26 +1,49 @@
 version: '3.8'
 
 services:
-  # MongoDB Database
+  # MongoDB Database (Configured as Replica Set for Transactions)
+  # Note: Running without authentication for development simplicity
+  # In production, add --keyFile and proper authentication
   mongodb:
     image: mongo:7.0
     container_name: fashion-engine-mongodb
     restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
-      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-fashion_engine}
+    command: [ "mongod", "--replSet", "rs0", "--bind_ip_all" ]
     ports:
       - '${MONGO_PORT:-27017}:27017'
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: mongosh --eval 'db.adminCommand("ping")' --quiet
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 40s
+    networks:
+      - fashion-engine-network
+
+  # MongoDB Replica Set Initialization
+  mongo-init:
+    image: mongo:7.0
+    container_name: fashion-engine-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    entrypoint: >
+      /bin/bash -c " echo '🔄 Initializing MongoDB replica set...'; sleep 10; mongosh --host mongodb:27017 --eval '
+        try {
+          rs.status();
+          print(\"✅ Replica set already initialized\");
+        } catch (err) {
+          print(\"🔄 Initializing replica set rs0...\");
+          rs.initiate({
+            _id: \"rs0\",
+            members: [{ _id: 0, host: \"mongodb:27017\" }]
+          });
+          print(\"✅ Replica set initialized successfully!\");
+        }
+      '; echo '✅ Replica set configuration complete'; exit 0; "
     networks:
       - fashion-engine-network
 
@@ -39,7 +62,7 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,12 +78,7 @@ services:
       minio:
         condition: service_healthy
     entrypoint: >
-      /bin/sh -c "
-      mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin123};
-      mc mb myminio/${MINIO_DEFAULT_BUCKET:-product-images} --ignore-existing;
-      mc anonymous set download myminio/${MINIO_DEFAULT_BUCKET:-product-images};
-      exit 0;
-      "
+      /bin/sh -c " mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin123}; mc mb myminio/${MINIO_DEFAULT_BUCKET:-product-images} --ignore-existing; mc anonymous set download myminio/${MINIO_DEFAULT_BUCKET:-product-images}; exit 0; "
     networks:
       - fashion-engine-network
 

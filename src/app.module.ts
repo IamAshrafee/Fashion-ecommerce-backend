@@ -10,6 +10,9 @@ import { StorageModule } from './storage/storage.module';
 import { SeedService } from './database/seed.service';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
+import { AuthModule } from './auth/auth.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -27,9 +30,12 @@ import { ProductsModule } from './products/products.module';
     // ============================================
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'),
-      }),
+      useFactory: (configService: ConfigService) => {
+        const uri = configService.get<string>('MONGO_URI');
+        return {
+          uri: uri,
+        };
+      },
     }),
 
     // ============================================
@@ -51,10 +57,18 @@ import { ProductsModule } from './products/products.module';
     // ============================================
     // FEATURE MODULES
     // ============================================
+    // Phase 2: Settings & Storage
     SettingsModule,
     StorageModule,
+
+    // Phase 3: Catalog
     CategoriesModule,
     ProductsModule,
+
+    // Phase 4: Commerce
+    AuthModule,
+    CartModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [

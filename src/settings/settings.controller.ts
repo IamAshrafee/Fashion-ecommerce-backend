@@ -1,7 +1,11 @@
-import { Controller, Get, Patch, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { SettingsService } from './settings.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../auth/schemas/user.schema';
 
 /**
  * SettingsController
@@ -36,12 +40,14 @@ export class SettingsController {
     }
 
     /**
-     * Update Store Settings
+     * Update Store Settings (ADMIN Only)
      *
      * Updates white-label configuration.
-     * TODO: Add @Roles('ADMIN') guard in Phase 3
      */
     @Patch()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Update store settings',
         description:
